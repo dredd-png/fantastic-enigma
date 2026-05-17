@@ -1,11 +1,11 @@
 {
   "name": "neuro-history",
   "version": "1.0.0",
-  "description": "Конструктор неврологической истории болезни",
+  "description": "Невролог",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win --x64"
+    "build": "electron-builder --win --x64 --publish never"
   },
   "build": {
     "appId": "com.neuro.history",
