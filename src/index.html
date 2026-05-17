@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Невролог — Конструктор истории болезни</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #6b7280;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f9fafb;
+  --color-border-tertiary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-border-info: #6366f1;
+  --border-radius-lg: 10px;
+  --border-radius-md: 6px;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--color-background-secondary);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.titlebar {
+  background: #fff;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+.titlebar i { color: #6366f1; font-size: 18px; }
+.wrap {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  padding: 12px;
+  gap: 12px;
+}
+.app {
+  display: flex;
+  gap: 0;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  flex: 1;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.left {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 0.5px solid var(--color-border-tertiary);
+}
+.tabs {
+  display: flex;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 8px 11px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.tab.on {
+  border-bottom-color: #6366f1;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+.tab:hover:not(.on) { color: var(--color-text-primary); }
+.pane {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  flex-direction: column;
+  gap: 10px;
+}
+.pane.on { display: flex; }
+.block {
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+.bh {
+  padding: 8px 11px;
+  background: var(--color-background-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bh i { font-size: 14px; color: var(--color-text-secondary); }
+.bb {
+  padding: 10px 11px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.f { display: flex; flex-direction: column; gap: 3px; }
+.f label { font-size: 11px; color: var(--color-text-secondary); font-weight: 500; }
+.f select, .f input[type=text] {
+  padding: 5px 6px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  width: 100%;
+  font-family: inherit;
+}
+.f select:focus, .f input[type=text]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c7d2fe;
+  border-color: var(--color-border-info);
+}
+.full { grid-column: 1 / -1; }
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.rh {
+  padding: 9px 13px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.rbtns { display: flex; gap: 5px; }
+.rbtn {
+  padding: 3px 9px;
+  font-size: 11px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary);
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rbtn:hover { background: var(--color-background-secondary); }
+.rbtn.success { color: #16a34a; border-color: #86efac; background: #f0fdf4; }
+.out {
+  flex: 1;
+  padding: 14px;
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  background: var(--color-background-secondary);
+}
+.pt {
+  padding: 10px 12px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  background: var(--color-background-secondary);
+  flex-shrink: 0;
+}
+.pt input {
+  flex: 1;
+  min-width: 70px;
+  padding: 5px 7px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+.pt input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c7d2fe;
+  border-color: var(--color-border-info);
+}
+.placeholder { color: var(--color-text-secondary); font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <i class="ti ti-brain"></i>
+  Невролог — Конструктор истории болезни
+</div>
+
+<div class="wrap">
+<div class="app">
+<div class="left">
+  <div class="pt">
+    <input id="pn" placeholder="ФИО пациента" oninput="B()">
+    <input id="pb" placeholder="Дата рождения" style="max-width:100px" oninput="B()">
+    <input id="pd" placeholder="Дата осмотра" style="max-width:95px" oninput="B()">
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="T(this,'t1')">Жалобы</button>
+    <button class="tab" onclick="T(this,'t2')">Сознание/ЧМН I–IV</button>
+    <button class="tab" onclick="T(this,'t3')">ЧМН V–XII</button>
+    <button class="tab" onclick="T(this,'t4')">Движение</button>
+    <button class="tab" onclick="T(this,'t5')">Коорд./Рефлексы</button>
+    <button class="tab" onclick="T(this,'t6')">Чувствит./Вегет.</button>
+    <button class="tab" onclick="T(this,'t7')">Менинг./Таз./ВПФ</button>
+  </div>
+
+  <div id="t1" class="pane on">
+    <div class="block"><div class="bh"><i class="ti ti-messages"></i>Основные жалобы</div><div class="bb">
+      <div class="f full"><label>Характер жалоб</label>
+        <select onchange="s('jal',this.value)"><option value="">— не указано —</option><option>жалоб не предъявляет</option><option>головная боль</option><option>головная боль и головокружение</option><option>боли в спине с иррадиацией</option><option>слабость в конечностях</option><option>нарушение речи</option><option>нарушение чувствительности</option><option>нарушение координации</option><option>судорожные приступы</option><option>потеря сознания</option><option>нарушение памяти</option></select></div>
+      <div class="f full"><label>Уточнение (свободный текст)</label>
+        <input type="text" id="jaltext" placeholder="Добавить детали..." oninput="B()"></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-history"></i>Начало заболевания</div><div class="bb">
+      <div class="f"><label>Начало</label>
+        <select onchange="s('onset',this.value)"><option value="">—</option><option>внезапное</option><option>острое</option><option>подострое</option><option>постепенное</option><option>хроническое с обострением</option></select></div>
+      <div class="f"><label>Провоцирующий фактор</label>
+        <select onchange="s('prov',this.value)"><option value="">—</option><option>без видимой причины</option><option>физическая нагрузка</option><option>переохлаждение</option><option>стресс</option><option>травма</option><option>инфекция</option><option>сосудистый криз</option></select></div>
+      <div class="f"><label>Течение</label>
+        <select onchange="s('flow',this.value)"><option value="">—</option><option>прогрессирующее</option><option>ремиттирующее</option><option>стационарное</option><option>с обострениями и ремиссиями</option><option>регрессирующее</option></select></div>
+      <div class="f"><label>Когда ухудшение</label>
+        <input type="text" placeholder="напр. последние 2 мес." oninput="s('wors',this.value)"></div>
+    </div></div>
+  </div>
+
+  <div id="t2" class="pane">
+    <div class="block"><div class="bh"><i class="ti ti-brain"></i>Сознание и общемозговые</div><div class="bb">
+      <div class="f"><label>Сознание</label>
+        <select onchange="s('con',this.value)"><option value="">—</option><option>ясное</option><option>оглушение лёгкое</option><option>оглушение умеренное</option><option>сопор</option><option>кома I</option><option>кома II</option><option>кома III</option></select></div>
+      <div class="f"><label>Выражение лица</label>
+        <select onchange="s('face_exp',this.value)"><option value="">—</option><option>спокойное</option><option>страдальческое</option><option>амимичное</option><option>маскообразное</option></select></div>
+      <div class="f"><label>Головная боль</label>
+        <select onchange="s('hb',this.value)"><option value="">—</option><option>отрицает</option><option>диффузная распирающая</option><option>в затылочной области</option><option>в лобно-теменной области</option><option>гемикрания справа</option><option>гемикрания слева</option><option>зависит от положения тела</option></select></div>
+      <div class="f"><label>Головокружение</label>
+        <select onchange="s('gol',this.value)"><option value="">—</option><option>нет</option><option>системное</option><option>несистемное</option><option>при изменении положения головы</option></select></div>
+      <div class="f"><label>Тошнота/рвота</label>
+        <select onchange="s('naus',this.value)"><option value="">—</option><option>нет</option><option>тошнота</option><option>рвота без облегчения</option><option>рвота «фонтаном»</option></select></div>
+      <div class="f"><label>Ориентация</label>
+        <select onchange="s('ori',this.value)"><option value="">—</option><option>в месте, времени и личности — полная</option><option>дезориентация во времени</option><option>дезориентация в месте</option><option>полная дезориентация</option></select></div>
+      <div class="f"><label>Контакт</label>
+        <select onchange="s('cnt',this.value)"><option value="">—</option><option>доступен, адекватен</option><option>затруднён</option><option>недоступен</option><option>формальный</option></select></div>
+      <div class="f"><label>Поведение</label>
+        <select onchange="s('beh',this.value)"><option value="">—</option><option>спокойное</option><option>психомоторное возбуждение</option><option>заторможенность</option><option>агрессивность</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-eye"></i>II — Зрительный нерв</div><div class="bb">
+      <div class="f"><label>Острота зрения</label>
+        <select onchange="s('vis',this.value)"><option value="">—</option><option>ориентировочно сохранена</option><option>снижена на оба глаза</option><option>снижена на правый глаз</option><option>снижена на левый глаз</option><option>резко снижена</option></select></div>
+      <div class="f"><label>Поля зрения</label>
+        <select onchange="s('vfield',this.value)"><option value="">—</option><option>выпадений нет</option><option>гомонимная гемианопсия справа</option><option>гомонимная гемианопсия слева</option><option>битемпоральная гемианопсия</option><option>центральная скотома</option><option>концентрическое сужение</option></select></div>
+      <div class="f"><label>Цветоощущение</label>
+        <select onchange="s('color',this.value)"><option value="">—</option><option>сохранено</option><option>нарушено</option></select></div>
+      <div class="f"><label>Глазное дно</label>
+        <select onchange="s('gdn',this.value)"><option value="">—</option><option>не исследовалось</option><option>норма</option><option>застойные диски</option><option>атрофия дисков</option><option>ангиопатия</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-eye"></i>III, IV, VI — Зрачки и глазодвигательные</div><div class="bb">
+      <div class="f"><label>Глазные щели</label>
+        <select onchange="s('gsh',this.value)"><option value="">—</option><option>средней величины, равномерные</option><option>птоз справа</option><option>птоз слева</option><option>птоз с обеих сторон</option><option>лагофтальм</option></select></div>
+      <div class="f"><label>Движения глазных яблок</label>
+        <select onchange="s('gmo',this.value)"><option value="">—</option><option>в полном объёме</option><option>ограничены вправо</option><option>ограничены влево</option><option>ограничены вверх</option><option>ограничены вниз</option><option>офтальмоплегия</option></select></div>
+      <div class="f"><label>Зрачки — размер</label>
+        <select onchange="s('psz',this.value)"><option value="">—</option><option>среднего размера, S=D (3–4 мм)</option><option>узкие — миоз (&lt;2 мм)</option><option>широкие — мидриаз (&gt;5 мм)</option><option>правый больше левого (анизокория)</option><option>левый больше правого (анизокория)</option></select></div>
+      <div class="f"><label>Форма зрачков</label>
+        <select onchange="s('psh',this.value)"><option value="">—</option><option>округлая</option><option>овальная</option><option>неправильная</option></select></div>
+      <div class="f"><label>Реакция на свет (прямая)</label>
+        <select onchange="s('prl',this.value)"><option value="">—</option><option>живая с обеих сторон</option><option>вялая справа</option><option>вялая слева</option><option>отсутствует справа</option><option>отсутствует слева</option><option>отсутствует с обеих сторон</option></select></div>
+      <div class="f"><label>Реакция содружественная</label>
+        <select onchange="s('prr',this.value)"><option value="">—</option><option>живая с обеих сторон</option><option>вялая</option><option>отсутствует</option></select></div>
+      <div class="f"><label>Конвергенция/аккомодация</label>
+        <select onchange="s('conv',this.value)"><option value="">—</option><option>сохранены</option><option>ослаблена конвергенция</option><option>нарушены</option></select></div>
+      <div class="f"><label>Нистагм</label>
+        <select onchange="s('nys',this.value)"><option value="">—</option><option>нет</option><option>горизонтальный</option><option>вертикальный</option><option>ротаторный</option><option>крупноразмашистый</option></select></div>
+      <div class="f"><label>Косоглазие</label>
+        <select onchange="s('kos',this.value)"><option value="">—</option><option>нет</option><option>сходящееся</option><option>расходящееся</option><option>вертикальное</option></select></div>
+      <div class="f"><label>Диплопия</label>
+        <select onchange="s('dip',this.value)"><option value="">—</option><option>нет</option><option>при взгляде вправо</option><option>при взгляде влево</option><option>постоянная</option></select></div>
+    </div></div>
+  </div>
+
+  <div id="t3" class="pane">
+    <div class="block"><div class="bh"><i class="ti ti-face-id"></i>V — Тройничный нерв</div><div class="bb">
+      <div class="f"><label>Болезненные области на лице</label>
+        <select onchange="s('v_pain',this.value)"><option value="">—</option><option>болезненных областей нет</option><option>болезненность точек выхода I ветви</option><option>болезненность точек выхода II ветви</option><option>болезненность точек выхода III ветви</option><option>болезненность всех ветвей</option></select></div>
+      <div class="f"><label>Чувствительность кожи лица</label>
+        <select onchange="s('v_sens',this.value)"><option value="">—</option><option>сохранена</option><option>гипестезия справа</option><option>гипестезия слева</option><option>гиперестезия</option><option>анестезия</option></select></div>
+      <div class="f"><label>Движения нижней челюсти</label>
+        <select onchange="s('v_jaw',this.value)"><option value="">—</option><option>в полном объёме, отклонений нет</option><option>ограничены</option><option>отклонение вправо</option><option>отклонение влево</option></select></div>
+      <div class="f"><label>Атрофия жевательных мышц</label>
+        <select onchange="s('v_atr',this.value)"><option value="">—</option><option>нет</option><option>есть справа</option><option>есть слева</option><option>двусторонняя</option></select></div>
+      <div class="f"><label>Роговичный рефлекс</label>
+        <select onchange="s('v_corn',this.value)"><option value="">—</option><option>живой с обеих сторон</option><option>снижен справа</option><option>снижен слева</option><option>отсутствует справа</option><option>отсутствует слева</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-face-id"></i>VII — Лицевой нерв</div><div class="bb">
+      <div class="f"><label>Мимика</label>
+        <select onchange="s('vii_mim',this.value)"><option value="">—</option><option>без особенностей, симметрична</option><option>центральный парез VII справа</option><option>центральный парез VII слева</option><option>периферический парез VII справа</option><option>периферический парез VII слева</option></select></div>
+      <div class="f"><label>Лобные складки</label>
+        <select onchange="s('vii_lob',this.value)"><option value="">—</option><option>одинаково выражены с обеих сторон</option><option>сглажены справа</option><option>сглажены слева</option></select></div>
+      <div class="f"><label>Носогубные складки</label>
+        <select onchange="s('vii_nos',this.value)"><option value="">—</option><option>симметричны</option><option>сглажена правая</option><option>сглажена левая</option></select></div>
+      <div class="f"><label>Лагофтальм</label>
+        <select onchange="s('vii_lag',this.value)"><option value="">—</option><option>нет</option><option>есть справа</option><option>есть слева</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-ear"></i>VIII — Слуховой нерв</div><div class="bb">
+      <div class="f"><label>Острота слуха</label>
+        <select onchange="s('viii_hear',this.value)"><option value="">—</option><option>сохранена</option><option>снижена на оба уха</option><option>снижена на правое ухо</option><option>снижена на левое ухо</option><option>глухота</option></select></div>
+      <div class="f"><label>Шум в ушах</label>
+        <select onchange="s('viii_noise',this.value)"><option value="">—</option><option>нет</option><option>постоянный</option><option>преходящий</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-activity"></i>IX, X — Языкоглоточный, Блуждающий; XI, XII</div><div class="bb">
+      <div class="f"><label>Мягкое нёбо</label>
+        <select onchange="s('ix_palat',this.value)"><option value="">—</option><option>симметрично, язычок по средней линии</option><option>асимметрия, язычок отклонён вправо</option><option>асимметрия, язычок отклонён влево</option></select></div>
+      <div class="f"><label>Глотание</label>
+        <select onchange="s('ix_swal',this.value)"><option value="">—</option><option>свободное</option><option>дисфагия лёгкая</option><option>дисфагия выраженная</option><option>афагия</option></select></div>
+      <div class="f"><label>Голос</label>
+        <select onchange="s('ix_voice',this.value)"><option value="">—</option><option>обычный</option><option>дисфония</option><option>гнусавый оттенок</option><option>афония</option></select></div>
+      <div class="f"><label>Глоточный рефлекс</label>
+        <select onchange="s('ix_ref',this.value)"><option value="">—</option><option>сохранён с обеих сторон</option><option>снижен</option><option>отсутствует</option></select></div>
+      <div class="f"><label>XI — Поднимание надплечий</label>
+        <select onchange="s('xi_sh',this.value)"><option value="">—</option><option>возможно</option><option>ограничено справа</option><option>ограничено слева</option></select></div>
+      <div class="f"><label>XII — Язык при высовывании</label>
+        <select onchange="s('xii_lang',this.value)"><option value="">—</option><option>по средней линии</option><option>отклоняется вправо</option><option>отклоняется влево</option></select></div>
+      <div class="f"><label>Атрофия языка</label>
+        <select onchange="s('xii_atr',this.value)"><option value="">—</option><option>нет</option><option>есть, с фибриллярными подёргиваниями</option></select></div>
+      <div class="f"><label>Дизартрия</label>
+        <select onchange="s('xii_diz',this.value)"><option value="">—</option><option>нет</option><option>дизартрия</option><option>анартрия</option></select></div>
+    </div></div>
+  </div>
+
+  <div id="t4" class="pane">
+    <div class="block"><div class="bh"><i class="ti ti-run"></i>Двигательная система</div><div class="bb">
+      <div class="f"><label>Объём активных движений</label>
+        <select onchange="s('mov',this.value)"><option value="">—</option><option>в полном объёме во всех конечностях</option><option>ограничены в правой руке</option><option>ограничены в левой руке</option><option>ограничены в правой ноге</option><option>ограничены в левой ноге</option><option>ограничены в правых конечностях</option><option>ограничены в левых конечностях</option><option>ограничены в нижних конечностях</option></select></div>
+      <div class="f"><label>Парез / плегия</label>
+        <select onchange="s('par',this.value)"><option value="">—</option><option>нет</option><option>монопарез правой руки</option><option>монопарез левой руки</option><option>монопарез правой ноги</option><option>монопарез левой ноги</option><option>гемипарез справа</option><option>гемипарез слева</option><option>гемиплегия справа</option><option>гемиплегия слева</option><option>нижний парапарез</option><option>тетрапарез</option></select></div>
+      <div class="f"><label>Мышечная сила (баллы)</label>
+        <select onchange="s('mstr',this.value)"><option value="">—</option><option>5,0 баллов во всех группах</option><option>4,0 балла — лёгкое снижение</option><option>3,0 балла — умеренное снижение</option><option>2,0 балла — значительное снижение</option><option>1,0 балл — минимальные движения</option><option>0 баллов — плегия</option></select></div>
+      <div class="f"><label>Мышечный тонус</label>
+        <select onchange="s('ton',this.value)"><option value="">—</option><option>не изменён</option><option>повышен (спастичность)</option><option>повышен (ригидность, «зубчатое колесо»)</option><option>диффузная гипотония</option><option>гипотония в правых конечностях</option><option>гипотония в левых конечностях</option></select></div>
+      <div class="f"><label>Атрофии</label>
+        <select onchange="s('atr',this.value)"><option value="">—</option><option>нет</option><option>гипотрофия правой руки</option><option>гипотрофия левой руки</option><option>диффузные гипотрофии</option></select></div>
+      <div class="f"><label>Проба Барре (руки)</label>
+        <select onchange="s('barre_r',this.value)"><option value="">—</option><option>удерживает</option><option>опускает правую руку</option><option>опускает левую руку</option><option>опускает обе руки</option></select></div>
+      <div class="f"><label>Проба Барре (ноги)</label>
+        <select onchange="s('barre_l',this.value)"><option value="">—</option><option>удерживает</option><option>опускает правую ногу</option><option>опускает левую ногу</option><option>опускает обе ноги</option></select></div>
+      <div class="f"><label>Гиперкинезы</label>
+        <select onchange="s('hyp',this.value)"><option value="">—</option><option>нет</option><option>тремор покоя</option><option>тремор интенционный</option><option>хорея</option><option>атетоз</option><option>миоклонии</option><option>тики</option></select></div>
+      <div class="f"><label>Походка</label>
+        <select onchange="s('wal',this.value)"><option value="">—</option><option>не нарушена</option><option>атактическая</option><option>спастическая</option><option>гемипаретическая</option><option>парапаретическая</option><option>паркинсоническая</option><option>«петушиная»</option><option>«утиная»</option></select></div>
+    </div></div>
+  </div>
+
+  <div id="t5" class="pane">
+    <div class="block"><div class="bh"><i class="ti ti-arrows-diagonal"></i>Координация</div><div class="bb">
+      <div class="f"><label>Поза Ромберга</label>
+        <select onchange="s('rom',this.value)"><option value="">—</option><option>устойчив в простой и усложнённой</option><option>неустойчив в усложнённой</option><option>неустойчив в простой (отклонение вправо)</option><option>неустойчив в простой (отклонение влево)</option><option>неустойчив в простой (назад)</option><option>грубое нарушение</option></select></div>
+      <div class="f"><label>ПНП проба</label>
+        <select onchange="s('fnp',this.value)"><option value="">—</option><option>выполняет точно</option><option>мимопопадание справа</option><option>мимопопадание слева</option><option>интенционный тремор справа</option><option>интенционный тремор слева</option><option>интенционный тремор с обеих сторон</option><option>не выполняет</option></select></div>
+      <div class="f"><label>Пяточно-коленная проба</label>
+        <select onchange="s('pkp',this.value)"><option value="">—</option><option>выполняет удовлетворительно</option><option>неуверенно справа</option><option>неуверенно слева</option><option>не выполняет</option></select></div>
+      <div class="f"><label>Адиадохокинез</label>
+        <select onchange="s('adia',this.value)"><option value="">—</option><option>нет</option><option>есть справа</option><option>есть слева</option><option>с обеих сторон</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-activity"></i>Рефлекторная сфера</div><div class="bb">
+      <div class="f"><label>Сухожильные рефлексы</label>
+        <select onchange="s('ref',this.value)"><option value="">—</option><option>живые, симметричные</option><option>умеренной живости, симметричные</option><option>повышены симметрично</option><option>снижены симметрично</option><option>Д&gt;С</option><option>С&gt;Д</option><option>отсутствуют</option></select></div>
+      <div class="f"><label>Периостальные рефлексы</label>
+        <select onchange="s('periost',this.value)"><option value="">—</option><option>живые, симметричные</option><option>умеренной живости, симметричные</option><option>снижены</option><option>отсутствуют</option></select></div>
+      <div class="f"><label>Брюшные рефлексы</label>
+        <select onchange="s('abdom',this.value)"><option value="">—</option><option>вызываются, симметричные</option><option>снижены</option><option>отсутствуют</option><option>Д&gt;С</option><option>С&gt;Д</option></select></div>
+      <div class="f"><label>Рефлекс Бабинского</label>
+        <select onchange="s('bab',this.value)"><option value="">—</option><option>отрицательный</option><option>положительный справа</option><option>положительный слева</option><option>положительный с обеих сторон</option></select></div>
+      <div class="f"><label>Патологические знаки</label>
+        <select onchange="s('pathref',this.value)"><option value="">—</option><option>нет</option><option>Россолимо справа</option><option>Россолимо слева</option><option>хоботковый рефлекс</option><option>ладонно-подбородочный Маринеску-Радовичи</option><option>рефлекс орального автоматизма</option></select></div>
+    </div></div>
+  </div>
+
+  <div id="t6" class="pane">
+    <div class="block"><div class="bh"><i class="ti ti-heart-rate-monitor"></i>Чувствительная сфера</div><div class="bb">
+      <div class="f"><label>Поверхностная чувствительность</label>
+        <select onchange="s('surf',this.value)"><option value="">—</option><option>нарушений нет</option><option>гипестезия в правых конечностях</option><option>гипестезия в левых конечностях</option><option>гемигипестезия справа</option><option>гемигипестезия слева</option><option>параанестезия нижних конечностей</option><option>диссоциированный тип нарушений</option></select></div>
+      <div class="f"><label>Глубокая чувствительность</label>
+        <select onchange="s('deep',this.value)"><option value="">—</option><option>нарушений нет</option><option>снижена в правых конечностях</option><option>снижена в левых конечностях</option><option>грубо нарушена</option></select></div>
+      <div class="f"><label>Парестезии</label>
+        <select onchange="s('parest',this.value)"><option value="">—</option><option>нет</option><option>онемение правых конечностей</option><option>онемение левых конечностей</option><option>онемение по типу «перчаток и носков»</option><option>ползание мурашек</option></select></div>
+      <div class="f"><label>Симптом Ласега</label>
+        <select onchange="s('laseg',this.value)"><option value="">—</option><option>отрицательный</option><option>положительный справа</option><option>положительный слева</option><option>положительный с обеих сторон</option></select></div>
+      <div class="f"><label>Угол Ласега</label>
+        <input type="text" placeholder="напр. 70°" oninput="s('laseg_ang',this.value)"></div>
+      <div class="f"><label>Симптом Нери</label>
+        <select onchange="s('neri',this.value)"><option value="">—</option><option>отрицательный</option><option>положительный</option></select></div>
+      <div class="f"><label>Паравертебральные точки</label>
+        <select onchange="s('paravert',this.value)"><option value="">—</option><option>безболезненны с обеих сторон</option><option>болезненны справа</option><option>болезненны слева</option><option>болезненны с обеих сторон</option></select></div>
+      <div class="f"><label>Точки проекции нерва</label>
+        <input type="text" placeholder="напр. точки Валле слева" oninput="s('nerve_pts',this.value)"></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-droplet"></i>Вегетативная нервная система</div><div class="bb">
+      <div class="f"><label>Дермографизм</label>
+        <select onchange="s('derm',this.value)"><option value="">—</option><option>красный, нормальный</option><option>белый</option><option>стойкий красный</option></select></div>
+      <div class="f"><label>Потоотделение</label>
+        <select onchange="s('sweat',this.value)"><option value="">—</option><option>нормальное</option><option>гипергидроз</option><option>ангидроз</option></select></div>
+      <div class="f"><label>Трофические расстройства</label>
+        <select onchange="s('troph',this.value)"><option value="">—</option><option>нет</option><option>сухость и истончение кожи</option><option>трофические язвы</option><option>пролежни</option></select></div>
+      <div class="f"><label>Синдром Горнера</label>
+        <select onchange="s('horn',this.value)"><option value="">—</option><option>нет</option><option>справа</option><option>слева</option></select></div>
+    </div></div>
+  </div>
+
+  <div id="t7" class="pane">
+    <div class="block"><div class="bh"><i class="ti ti-shield"></i>Менингеальные симптомы</div><div class="bb">
+      <div class="f"><label>Ригидность затылочных мышц</label>
+        <select onchange="s('neck',this.value)"><option value="">—</option><option>нет</option><option>умеренная</option><option>выраженная</option></select></div>
+      <div class="f"><label>Светобоязнь / звукобоязнь</label>
+        <select onchange="s('photoph',this.value)"><option value="">—</option><option>нет</option><option>светобоязнь</option><option>звукобоязнь</option><option>светобоязнь и звукобоязнь</option></select></div>
+      <div class="f"><label>Симптом Кернига</label>
+        <select onchange="s('ker',this.value)"><option value="">—</option><option>отрицательный</option><option>положительный справа</option><option>положительный слева</option><option>положительный с обеих сторон</option></select></div>
+      <div class="f"><label>Симптом Брудзинского</label>
+        <select onchange="s('bru',this.value)"><option value="">—</option><option>отрицательный</option><option>верхний положительный</option><option>нижний положительный</option><option>оба положительных</option></select></div>
+      <div class="f"><label>Симптом Бехтерева</label>
+        <select onchange="s('beh_m',this.value)"><option value="">—</option><option>отрицательный</option><option>положительный</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-urgent"></i>Тазовые органы</div><div class="bb">
+      <div class="f full"><label>Функции тазовых органов</label>
+        <select onchange="s('pelv',this.value)"><option value="">—</option><option>сохранены</option><option>задержка мочеиспускания</option><option>недержание мочи</option><option>императивные позывы</option><option>задержка стула</option><option>нарушения по центральному типу</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-brain"></i>Высшие психические функции</div><div class="bb">
+      <div class="f"><label>Речь</label>
+        <select onchange="s('speech',this.value)"><option value="">—</option><option>продуктивная речь сохранена</option><option>моторная афазия</option><option>сенсорная афазия</option><option>тотальная афазия</option><option>дизартрия</option><option>мутизм</option></select></div>
+      <div class="f"><label>Память и внимание</label>
+        <select onchange="s('mem',this.value)"><option value="">—</option><option>нарушений нет</option><option>снижение кратковременной памяти</option><option>снижение долговременной памяти</option><option>выраженные нарушения памяти</option><option>нарушения внимания</option></select></div>
+      <div class="f"><label>Критика к состоянию</label>
+        <select onchange="s('crit',this.value)"><option value="">—</option><option>сохранена</option><option>снижена</option><option>отсутствует</option><option>анозогнозия</option></select></div>
+      <div class="f"><label>Счёт, письмо, чтение</label>
+        <select onchange="s('calc',this.value)"><option value="">—</option><option>не нарушены</option><option>акалькулия</option><option>аграфия</option><option>алексия</option><option>нарушение праксиса</option></select></div>
+    </div></div>
+    <div class="block"><div class="bh"><i class="ti ti-notes"></i>Заключение и рекомендации</div><div class="bb">
+      <div class="f full"><label>Предварительный диагноз</label>
+        <input type="text" id="diag" placeholder="Введите диагноз..." oninput="B()"></div>
+      <div class="f full"><label>Рекомендации (через ; )</label>
+        <input type="text" id="recs" placeholder="напр. МРТ головного мозга; консультация..." oninput="B()"></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="right">
+  <div class="rh">Протокол осмотра
+    <div class="rbtns">
+      <button class="rbtn" onclick="resetAll()" title="Очистить всё"><i class="ti ti-refresh"></i></button>
+      <button class="rbtn" id="cbtn" onclick="copyText()"><i class="ti ti-copy"></i> Копировать</button>
+    </div>
+  </div>
+  <div class="out" id="out"><span class="placeholder">Выбирайте параметры слева — текст протокола будет формироваться автоматически.</span></div>
+</div>
+</div>
+</div>
+
+<script>
+const D={};
+function s(k,v){D[k]=v;B()}
+function g(k){return D[k]||''}
+function T(btn,id){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
+function val(id){return document.getElementById(id)?.value.trim()||''}
+
+function ucfirst(str){
+  if(!str) return str;
+  return str.charAt(0).toUpperCase()+str.slice(1);
+}
+
+function toSentences(parts, sep){
+  sep = sep||'. ';
+  if(!parts||!parts.length) return '';
+  return parts.map(p=>p.trim()).filter(Boolean).map((p,i)=>{
+    p = p.replace(/\.+$/, '');
+    return i===0 ? ucfirst(p) : ucfirst(p);
+  }).join(sep)+'.';
+}
+
+function B(){
+  const pn=val('pn'), pb=val('pb'), pd=val('pd');
+  const diag=val('diag'), recs=val('recs');
+  const jaltext=val('jaltext');
+  const lines=[];
+
+  lines.push('НЕВРОЛОГ');
+  if(pn) lines.push('ФИО: '+pn);
+  if(pb) lines.push('Дата рождения: '+pb);
+  if(pd) lines.push('Дата осмотра: '+pd);
+  lines.push('');
+
+  const jalParts=[];
+  if(g('jal')) jalParts.push(g('jal'));
+  if(jaltext) jalParts.push(jaltext);
+  const anamnParts=[];
+  if(g('onset')) anamnParts.push('начало '+g('onset'));
+  if(g('prov')) anamnParts.push('провоцирующий фактор: '+g('prov'));
+  if(g('flow')) anamnParts.push('течение '+g('flow'));
+  if(g('wors')) anamnParts.push('заметное ухудшение: '+g('wors'));
+  if(jalParts.length){
+    lines.push('Жалобы: '+toSentences(jalParts,'; '));
+    lines.push('');
+  }
+  if(anamnParts.length){
+    lines.push(toSentences(anamnParts,'. '));
+    lines.push('');
+  }
+
+  lines.push('В неврологическом статусе:');
+
+  const conParts=[];
+  if(g('con')) conParts.push('сознание '+g('con'));
+  if(g('face_exp')) conParts.push('выражение лица '+g('face_exp'));
+  if(g('ori')) conParts.push('ориентирован — '+g('ori'));
+  if(g('cnt')) conParts.push('контакт: '+g('cnt'));
+  if(g('beh')) conParts.push('поведение: '+g('beh'));
+  if(g('hb')) conParts.push('головная боль: '+g('hb'));
+  if(g('gol')) conParts.push('головокружение: '+g('gol'));
+  if(g('naus')) conParts.push('тошнота/рвота: '+g('naus'));
+  if(conParts.length) lines.push(toSentences(conParts,'. '));
+
+  const cn2=[];
+  if(g('vis')) cn2.push('зрение '+g('vis'));
+  if(g('vfield')) cn2.push('поля зрения: '+g('vfield'));
+  if(g('color')) cn2.push('цветоощущение '+g('color'));
+  if(g('gdn')) cn2.push('глазное дно: '+g('gdn'));
+
+  const cn3=[];
+  if(g('gsh')) cn3.push('глазные щели '+g('gsh'));
+  if(g('gmo')) cn3.push('движения глазных яблок '+g('gmo'));
+  if(g('psz')) cn3.push('зрачки: '+g('psz'));
+  if(g('psh')) cn3.push('форма зрачков '+g('psh'));
+  if(g('prl')) cn3.push('реакция на свет прямая — '+g('prl'));
+  if(g('prr')) cn3.push('содружественная — '+g('prr'));
+  if(g('conv')) cn3.push('конвергенция и аккомодация '+g('conv'));
+  if(g('nys')) cn3.push('нистагм: '+g('nys'));
+  if(g('kos')&&g('kos')!=='нет') cn3.push('косоглазие: '+g('kos'));
+  if(g('dip')&&g('dip')!=='нет') cn3.push('диплопия: '+g('dip'));
+
+  const cmnAll=[...cn2,...cn3];
+  if(cmnAll.length){
+    lines.push('Обоняние ориентировочно сохранено. '+toSentences(cmnAll,'. '));
+  }
+
+  const cn5=[];
+  if(g('v_pain')) cn5.push(g('v_pain'));
+  if(g('v_sens')&&g('v_sens')!=='сохранена') cn5.push('чувствительность лица: '+g('v_sens'));
+  if(g('v_jaw')&&g('v_jaw')!=='в полном объёме, отклонений нет') cn5.push('движения нижней челюсти: '+g('v_jaw'));
+  if(g('v_corn')) cn5.push('роговичный рефлекс: '+g('v_corn'));
+  if(g('vii_mim')) cn5.push('мимика: '+g('vii_mim'));
+  if(g('vii_lob')&&g('vii_lob')!=='одинаково выражены с обеих сторон') cn5.push('лобные складки: '+g('vii_lob'));
+  if(g('vii_nos')&&g('vii_nos')!=='симметричны') cn5.push('носогубные складки: '+g('vii_nos'));
+  if(g('vii_lag')&&g('vii_lag')!=='нет') cn5.push('лагофтальм: '+g('vii_lag'));
+  if(g('viii_hear')) cn5.push('острота слуха: '+g('viii_hear'));
+  if(g('viii_noise')&&g('viii_noise')!=='нет') cn5.push('шум в ушах: '+g('viii_noise'));
+  if(g('ix_palat')) cn5.push('мягкое нёбо — '+g('ix_palat'));
+  if(g('ix_swal')) cn5.push('глотание — '+g('ix_swal'));
+  if(g('ix_voice')) cn5.push('голос — '+g('ix_voice'));
+  if(g('ix_ref')) cn5.push('глоточный рефлекс: '+g('ix_ref'));
+  if(g('xi_sh')) cn5.push('поднимание надплечий: '+g('xi_sh'));
+  if(g('xii_lang')) cn5.push('язык при высовывании: '+g('xii_lang'));
+  if(g('xii_atr')&&g('xii_atr')!=='нет') cn5.push(g('xii_atr'));
+  if(g('xii_diz')&&g('xii_diz')!=='нет') cn5.push(g('xii_diz'));
+  if(cn5.length) lines.push('Со стороны ЧМН: '+toSentences(cn5,'. '));
+
+  const mv=[];
+  if(g('mov')) mv.push('движения в конечностях '+g('mov'));
+  if(g('par')&&g('par')!=='нет') mv.push('парез: '+g('par'));
+  if(g('mstr')) mv.push('мышечная сила '+g('mstr'));
+  if(g('ton')) mv.push('мышечный тонус '+g('ton'));
+  if(g('atr')&&g('atr')!=='нет') mv.push(g('atr'));
+  if(g('barre_r')&&g('barre_r')!=='удерживает') mv.push('проба Барре (руки): '+g('barre_r'));
+  if(g('barre_l')&&g('barre_l')!=='удерживает') mv.push('проба Барре (ноги): '+g('barre_l'));
+  if(g('hyp')&&g('hyp')!=='нет') mv.push('гиперкинезы: '+g('hyp'));
+  if(g('wal')&&g('wal')!=='не нарушена') mv.push('походка: '+g('wal'));
+  if(mv.length) lines.push(toSentences(mv,'. '));
+
+  const rf=[];
+  if(g('ref')){
+    let refStr='сухожильные рефлексы '+g('ref');
+    if(g('periost')) refStr+=', периостальные — '+g('periost');
+    rf.push(refStr);
+  }
+  if(g('abdom')) rf.push('брюшные рефлексы: '+g('abdom'));
+  if(g('bab')) rf.push('симптом Бабинского: '+g('bab'));
+  if(g('pathref')&&g('pathref')!=='нет') rf.push('патологические знаки: '+g('pathref'));
+  if(rf.length) lines.push(toSentences(rf,'. '));
+
+  const co=[];
+  if(g('rom')) co.push('в позе Ромберга '+g('rom'));
+  if(g('fnp')) co.push('ПНП проба: '+g('fnp'));
+  if(g('pkp')) co.push('пяточно-коленная проба: '+g('pkp'));
+  if(g('adia')&&g('adia')!=='нет') co.push('адиадохокинез: '+g('adia'));
+  if(co.length) lines.push('Координаторные пробы: '+toSentences(co,'. '));
+
+  const se=[];
+  if(g('surf')) se.push('поверхностная: '+g('surf'));
+  if(g('deep')) se.push('глубокая: '+g('deep'));
+  if(g('parest')&&g('parest')!=='нет') se.push('парестезии: '+g('parest'));
+  if(g('laseg')){
+    let lt=g('laseg');
+    if(g('laseg_ang')&&g('laseg')!=='отрицательный') lt+=' под углом '+g('laseg_ang');
+    se.push('симптом Ласега: '+lt);
+  }
+  if(g('neri')) se.push('симптом Нери: '+g('neri'));
+  if(g('paravert')) se.push('паравертебральные точки: '+g('paravert'));
+  if(g('nerve_pts')) se.push(g('nerve_pts'));
+  if(se.length) lines.push('Чувствительных нарушений: '+toSentences(se,'. '));
+
+  const vg=[];
+  if(g('derm')) vg.push('дермографизм '+g('derm'));
+  if(g('sweat')&&g('sweat')!=='нормальное') vg.push('потоотделение: '+g('sweat'));
+  if(g('troph')&&g('troph')!=='нет') vg.push('трофические расстройства: '+g('troph'));
+  if(g('horn')&&g('horn')!=='нет') vg.push('синдром Горнера '+g('horn'));
+  if(vg.length) lines.push('Вегетативная НС: '+toSentences(vg,'. '));
+
+  const mn=[];
+  if(g('neck')) mn.push('ригидность затылочных мышц: '+g('neck'));
+  if(g('photoph')&&g('photoph')!=='нет') mn.push(g('photoph'));
+  if(g('ker')) mn.push('симптом Кернига: '+g('ker'));
+  if(g('bru')) mn.push('симптом Брудзинского: '+g('bru'));
+  if(g('beh_m')) mn.push('симптом Бехтерева: '+g('beh_m'));
+  if(mn.length) lines.push('Менингеальные симптомы: '+toSentences(mn,'. '));
+
+  if(g('pelv')) lines.push('Тазовые функции: '+g('pelv')+'.');
+
+  const hpf=[];
+  if(g('speech')) hpf.push(g('speech'));
+  if(g('mem')) hpf.push('память и внимание: '+g('mem'));
+  if(g('crit')) hpf.push('критика: '+g('crit'));
+  if(g('calc')&&g('calc')!=='не нарушены') hpf.push(g('calc'));
+  if(hpf.length) lines.push(toSentences(hpf,'. '));
+
+  if(diag||recs){
+    lines.push('');
+    if(diag) lines.push('Заключение: '+ucfirst(diag)+'.');
+    if(recs){
+      lines.push('');
+      lines.push('Рекомендации:');
+      recs.split(';').map(r=>r.trim()).filter(Boolean).forEach(r=>{
+        r=r.replace(/\.+$/,'');
+        lines.push('- '+ucfirst(r)+'.');
+      });
+    }
+    lines.push('');
+    lines.push('                   Врач: Ткаченко Н.П.');
+  }
+
+  const text=lines.join('\n').trim();
+  const out=document.getElementById('out');
+  if(text){
+    out.textContent=text;
+    out.classList.remove('placeholder');
+  } else {
+    out.innerHTML='<span class="placeholder">Выбирайте параметры слева — текст протокола будет формироваться автоматически.</span>';
+  }
+}
+
+async function copyText(){
+  const t=document.getElementById('out').textContent;
+  const b=document.getElementById('cbtn');
+  try {
+    if(window.electronAPI){
+      await window.electronAPI.copyText(t);
+    } else {
+      await navigator.clipboard.writeText(t);
+    }
+    b.innerHTML='<i class="ti ti-check"></i> Скопировано';
+    b.classList.add('success');
+    setTimeout(()=>{
+      b.innerHTML='<i class="ti ti-copy"></i> Копировать';
+      b.classList.remove('success');
+    },1600);
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function resetAll(){
+  Object.keys(D).forEach(k=>delete D[k]);
+  document.querySelectorAll('select').forEach(el=>el.value='');
+  document.querySelectorAll('input[type=text]').forEach(el=>el.value='');
+  B();
+}
+B();
+</script>
+</body>
+</html>

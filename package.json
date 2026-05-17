@@ -1,0 +1,38 @@
+{
+  "name": "neuro-history",
+  "version": "1.0.0",
+  "description": "Конструктор неврологической истории болезни",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.neuro.history",
+    "productName": "Невролог",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": ["Russian"],
+      "language": "1049",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Невролог"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "icon.png",
+      "icon.ico"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}
