@@ -426,6 +426,42 @@ body {
 }
 .action-btn:hover { background: var(--c-accent-l); border-color: var(--c-accent-m); color: var(--c-accent); }
 .action-btn i { font-size: 14px; }
+.font-size-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1.5px solid var(--c-border2);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--c-surface);
+}
+.fs-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--c-text2);
+  transition: all var(--trans);
+  font-size: 13px;
+}
+.fs-btn:hover { background: var(--c-accent-l); color: var(--c-accent); }
+.fs-btn i { font-size: 12px; }
+.fs-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-text2);
+  min-width: 32px;
+  text-align: center;
+  font-family: var(--mono);
+  border-left: 1px solid var(--c-border);
+  border-right: 1px solid var(--c-border);
+  padding: 0 3px;
+  line-height: 26px;
+}
 .action-btn.success {
   background: var(--c-green-bg);
   border-color: var(--c-green-bd);
@@ -441,7 +477,7 @@ body {
 .protocol {
   flex: 1;
   padding: 16px 20px;
-  font-size: 20px;
+  font-size: 12.5px;
   line-height: 1.9;
   color: var(--c-text);
   white-space: pre-wrap;
@@ -730,6 +766,11 @@ body {
     <div class="panel-right-head">
       <span>Протокол осмотра</span>
       <div class="actions">
+        <div class="font-size-ctrl">
+          <button class="fs-btn" onclick="changeFontSize(-1)" title="Уменьшить шрифт"><i class="ti ti-minus"></i></button>
+          <span class="fs-label" id="fsLabel">13px</span>
+          <button class="fs-btn" onclick="changeFontSize(1)" title="Увеличить шрифт"><i class="ti ti-plus"></i></button>
+        </div>
         <button class="action-btn" onclick="resetAll()" title="Очистить всё">
           <i class="ti ti-refresh"></i> Очистить
         </button>
@@ -808,7 +849,7 @@ const OPTS = {
   adia:     ['нет','есть справа','есть слева','с обеих сторон'],
   ref:      ['живые, симметричные','умеренной живости, симметричные','повышены симметрично','снижены симметрично','Д>С','С>Д','отсутствуют'],
   periost:  ['живые, симметричные','умеренной живости, симметричные','снижены','отсутствуют'],
-  abdom:    ['вызываются, симметричные','снижены','отсутствуют','D>S','S>D'],
+  abdom:    ['вызываются, симметричные','снижены','отсутствуют','Д>С','С>Д'],
   bab:      ['отрицательный','положительный справа','положительный слева','положительный с обеих сторон'],
   pathref:  ['нет','Россолимо справа','Россолимо слева','хоботковый рефлекс','ладонно-подбородочный Маринеску-Радовичи','рефлекс орального автоматизма'],
   surf:     ['нарушений нет','гипестезия в правых конечностях','гипестезия в левых конечностях','гемигипестезия справа','гемигипестезия слева','параанестезия нижних конечностей','диссоциированный тип нарушений'],
@@ -1163,6 +1204,16 @@ function rebuild() {
   const out = document.getElementById('protocol');
   if (text) out.textContent = text;
   else out.innerHTML = '<span class="protocol-empty">Выбирайте параметры слева — протокол формируется автоматически.</span>';
+}
+
+/* ═══════════════════════════════════════════════════════
+   FONT SIZE
+═══════════════════════════════════════════════════════ */
+let fontSize = 13;
+function changeFontSize(delta) {
+  fontSize = Math.min(22, Math.max(9, fontSize + delta));
+  document.getElementById('protocol').style.fontSize = fontSize + 'px';
+  document.getElementById('fsLabel').textContent = fontSize + 'px';
 }
 
 /* ═══════════════════════════════════════════════════════
